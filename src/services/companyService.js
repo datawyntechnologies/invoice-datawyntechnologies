@@ -6,6 +6,11 @@ export const companyService = {
     return response.data
   },
 
+  getPublicCompanySettings: async () => {
+    const response = await api.get('/company/public')
+    return response.data
+  },
+
   updateCompanySettings: async (settingsData, logoFile, signatureFile) => {
     const formData = new FormData()
     

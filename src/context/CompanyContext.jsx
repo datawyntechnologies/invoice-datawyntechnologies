@@ -10,7 +10,11 @@ export const CompanyProvider = ({ children }) => {
   const fetchCompanySettings = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await companyService.getCompanySettings()
+      const token = localStorage.getItem('token')
+      // Use public endpoint if no token, authenticated endpoint if token exists
+      const response = token
+        ? await companyService.getCompanySettings()
+        : await companyService.getPublicCompanySettings()
       if (response.success) {
         setCompanySettings(response.data)
       }
