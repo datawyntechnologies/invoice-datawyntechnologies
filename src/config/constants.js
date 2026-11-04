@@ -49,8 +49,8 @@ export const CUSTOMER_TYPE = {
 }
 
 export const PRODUCT_TYPE = {
-  INDIVIDUAL: 'individual',
-  COMBO: 'combo'
+  PRODUCT: 'product',
+  SERVICE: 'service'
 }
 
 export const USER_ROLES = {
