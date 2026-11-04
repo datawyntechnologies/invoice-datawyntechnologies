@@ -9,6 +9,7 @@ import Pagination from '../../components/common/Pagination'
 const ProductListPage = () => {
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
+  const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
@@ -18,7 +19,7 @@ const ProductListPage = () => {
   const [totalItems, setTotalItems] = useState(0)
   const itemsPerPage = 10
 
-  // Debounce search term
+  // Debounce search term for server-side search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
@@ -28,12 +29,27 @@ const ProductListPage = () => {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
+  // Client-side filtering for instant feedback
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = allProducts.filter(product =>
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.code?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      setProducts(filtered)
+    } else {
+      setProducts(allProducts)
+    }
+  }, [searchTerm, allProducts])
+
   useEffect(() => {
     fetchProducts()
   }, [currentPage, debouncedSearchTerm])
 
   const fetchProducts = async () => {
-    setLoading(true)
+    if (debouncedSearchTerm) {
+      setLoading(true)
+    }
     try {
       const response = await productService.getProducts({
         page: currentPage,
@@ -41,7 +57,9 @@ const ProductListPage = () => {
         search: debouncedSearchTerm
       })
       if (response.success) {
-        setProducts(response.data.items || response.data)
+        const fetchedProducts = response.data.items || response.data
+        setProducts(fetchedProducts)
+        setAllProducts(fetchedProducts)
         setTotalPages(response.data.pagination?.pages || 1)
         setTotalItems(response.data.pagination?.total || 0)
       }
