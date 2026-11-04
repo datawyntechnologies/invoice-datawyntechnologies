@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { customerService } from '../../services/customerService'
+import { customerTypeService } from '../../services/customerTypeService'
 import toast from 'react-hot-toast'
-import { CUSTOMER_TYPE } from '../../config/constants'
+import { FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
 
 const CustomerCreatePage = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [customerTypes, setCustomerTypes] = useState([])
+  const [showAddTypeModal, setShowAddTypeModal] = useState(false)
+  const [newTypeName, setNewTypeName] = useState('')
+  const [editingType, setEditingType] = useState(null)
   const [formData, setFormData] = useState({
     companyName: '',
     contactPerson: '',
@@ -29,11 +34,101 @@ const CustomerCreatePage = () => {
       country: 'India',
       pincode: ''
     },
-    customerType: CUSTOMER_TYPE.BUSINESS,
+    customerType: '',
     notes: ''
   })
   const [errors, setErrors] = useState({})
   const [sameAsBilling, setSameAsBilling] = useState(false)
+
+  useEffect(() => {
+    fetchCustomerTypes()
+  }, [])
+
+  const fetchCustomerTypes = async () => {
+    try {
+      const response = await customerTypeService.getCustomerTypes()
+      if (response.success) {
+        setCustomerTypes(response.data)
+        if (response.data.length > 0 && !formData.customerType) {
+          setFormData(prev => ({ ...prev, customerType: response.data[0]._id }))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch customer types:', error)
+    }
+  }
+
+  const handleAddCustomerType = async (e) => {
+    e.preventDefault()
+    if (!newTypeName.trim()) {
+      toast.error('Customer type name is required')
+      return
+    }
+
+    try {
+      const response = await customerTypeService.createCustomerType({
+        name: newTypeName
+      })
+      if (response.success) {
+        toast.success('Customer type added successfully')
+        setNewTypeName('')
+        setShowAddTypeModal(false)
+        fetchCustomerTypes()
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add customer type')
+    }
+  }
+
+  const handleEditCustomerType = async (e) => {
+    e.preventDefault()
+    if (!newTypeName.trim()) {
+      toast.error('Customer type name is required')
+      return
+    }
+
+    try {
+      const response = await customerTypeService.updateCustomerType(editingType._id, {
+        name: newTypeName
+      })
+      if (response.success) {
+        toast.success('Customer type updated successfully')
+        setNewTypeName('')
+        setEditingType(null)
+        setShowAddTypeModal(false)
+        fetchCustomerTypes()
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update customer type')
+    }
+  }
+
+  const handleDeleteCustomerType = async (typeId) => {
+    try {
+      const response = await customerTypeService.deleteCustomerType(typeId)
+      if (response.success) {
+        toast.success('Customer type deleted successfully')
+        fetchCustomerTypes()
+        if (formData.customerType === typeId) {
+          setFormData(prev => ({ ...prev, customerType: customerTypes[0]?._id || '' }))
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to delete customer type')
+    }
+  }
+
+  const openAddModal = () => {
+    setEditingType(null)
+    setNewTypeName('')
+    setShowAddTypeModal(true)
+  }
+
+  const openEditModal = (type) => {
+    setEditingType(type)
+    setNewTypeName(type.name)
+    setShowAddTypeModal(true)
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -185,15 +280,53 @@ const CustomerCreatePage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Customer Type
               </label>
-              <select
-                name="customerType"
-                value={formData.customerType}
-                onChange={handleChange}
-                className="input"
-              >
-                <option value={CUSTOMER_TYPE.BUSINESS}>Business</option>
-                <option value={CUSTOMER_TYPE.INDIVIDUAL}>Individual</option>
-              </select>
+              <div className="flex gap-2">
+                <select
+                  name="customerType"
+                  value={formData.customerType}
+                  onChange={handleChange}
+                  className="input flex-1"
+                >
+                  {customerTypes.map((type) => (
+                    <option key={type._id} value={type._id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={openAddModal}
+                  className="btn btn-secondary px-3"
+                  title="Add new customer type"
+                >
+                  <FiPlus size={18} />
+                </button>
+              </div>
+              {customerTypes.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {customerTypes.map((type) => (
+                    <div key={type._id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-sm">
+                      <span>{type.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(type)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Edit"
+                      >
+                        <FiEdit size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCustomerType(type._id)}
+                        className="text-red-600 hover:text-red-800"
+                        title="Delete"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -390,6 +523,47 @@ const CustomerCreatePage = () => {
           </button>
         </div>
       </form>
+
+      {/* Add/Edit Customer Type Modal */}
+      {showAddTypeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {editingType ? 'Edit Customer Type' : 'Add Customer Type'}
+            </h3>
+            <form onSubmit={editingType ? handleEditCustomerType : handleAddCustomerType} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type Name *
+                </label>
+                <input
+                  type="text"
+                  value={newTypeName}
+                  onChange={(e) => setNewTypeName(e.target.value)}
+                  className="input"
+                  placeholder="e.g., VIP, Corporate, Individual"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddTypeModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  {editingType ? 'Update' : 'Add'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
