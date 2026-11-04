@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { FiPlus, FiSearch, FiEdit, FiTrash2, FiEye } from 'react-icons/fi'
 import { productService } from '../../services/productService'
 import toast from 'react-hot-toast'
-import { PRODUCT_TYPE } from '../../config/constants'
 import { formatCurrency } from '../../utils/formatCurrency'
 import Pagination from '../../components/common/Pagination'
 
@@ -124,7 +123,11 @@ const ProductListPage = () => {
                 <tr key={product._id}>
                   <td className="font-medium">{product.code || '-'}</td>
                   <td>{product.name}</td>
-                  <td className="capitalize">{product.type}</td>
+                  <td>
+                    <span className={`badge ${product.productType === 'combo' ? 'badge-purple' : 'badge-blue'}`}>
+                      {product.productType === 'combo' ? 'Combo' : 'Individual'}
+                    </span>
+                  </td>
                   <td>{formatCurrency(product.price)}</td>
                   <td>
                     <span className={`badge ${product.status === 'active' ? 'badge-green' : 'badge-gray'}`}>

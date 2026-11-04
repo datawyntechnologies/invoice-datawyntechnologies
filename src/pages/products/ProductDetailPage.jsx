@@ -79,8 +79,8 @@ const ProductDetailPage = () => {
             <p className="font-medium text-gray-900">{product.name}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Type</p>
-            <p className="font-medium text-gray-900 capitalize">{product.type}</p>
+            <p className="text-sm text-gray-600">Product Type</p>
+            <p className="font-medium text-gray-900 capitalize">{product.productType || 'individual'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Status</p>

@@ -9,8 +9,8 @@ const ProductEditPage = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    type: 'static',
+    productType: 'individual',
+    names: [''],
     description: '',
     priceRanges: {
       basic: '',
@@ -33,8 +33,8 @@ const ProductEditPage = () => {
       if (response.success) {
         const product = response.data
         setFormData({
-          name: product.name || '',
-          type: product.type || 'static',
+          productType: product.productType || 'individual',
+          names: product.name ? product.name.split(', ').map(n => n.trim()) : [''],
           description: product.description || '',
           priceRanges: {
             basic: product.priceRanges?.basic?.toString() || '',
@@ -54,7 +54,7 @@ const ProductEditPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    
+
     // Handle nested price ranges
     if (name.startsWith('priceRanges.')) {
       const field = name.split('.')[1]
@@ -65,61 +65,104 @@ const ProductEditPage = () => {
           [field]: value
         }
       }))
-      
+
       if (errors[field]) {
         setErrors(prev => ({ ...prev, [field]: '' }))
       }
+    } else if (name.startsWith('names.')) {
+      const index = parseInt(name.split('.')[1])
+      setFormData(prev => ({
+        ...prev,
+        names: prev.names.map((n, i) => i === index ? value : n)
+      }))
+
+      if (errors.name) {
+        setErrors(prev => ({ ...prev, name: '' }))
+      }
+    } else if (name === 'productType') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        names: value === 'individual' ? [prev.names[0] || ''] : prev.names
+      }))
+
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }))
+      }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
-      
+
       if (errors[name]) {
         setErrors(prev => ({ ...prev, [name]: '' }))
       }
     }
   }
 
+  const handleAddName = () => {
+    setFormData(prev => ({
+      ...prev,
+      names: [...prev.names, '']
+    }))
+  }
+
+  const handleRemoveName = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      names: prev.names.filter((_, i) => i !== index)
+    }))
+  }
+
   const validate = () => {
     const newErrors = {}
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required'
+
+    if (formData.productType === 'individual') {
+      if (!formData.names[0].trim()) {
+        newErrors.name = 'Product name is required'
+      }
+    } else {
+      if (formData.names.length === 0 || formData.names.every(name => !name.trim())) {
+        newErrors.name = 'At least one product name is required'
+      }
     }
-    
+
     if (!formData.priceRanges.basic || parseFloat(formData.priceRanges.basic) < 0) {
       newErrors.basic = 'Valid basic price is required'
     }
-    
+
     if (!formData.priceRanges.standard || parseFloat(formData.priceRanges.standard) < 0) {
       newErrors.standard = 'Valid standard price is required'
     }
-    
+
     if (!formData.priceRanges.premium || parseFloat(formData.priceRanges.premium) < 0) {
       newErrors.premium = 'Valid premium price is required'
     }
-    
+
     if (formData.priceRanges.custom && parseFloat(formData.priceRanges.custom) < 0) {
       newErrors.custom = 'Custom price cannot be negative'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validate()) return
-    
+
     setSaving(true)
     try {
       const response = await productService.updateProduct(id, {
-        ...formData,
+        productType: formData.productType,
+        name: formData.productType === 'individual' ? formData.names[0] : formData.names.filter(n => n.trim()).join(', '),
+        description: formData.description,
         priceRanges: {
           basic: parseFloat(formData.priceRanges.basic),
           standard: parseFloat(formData.priceRanges.standard),
           premium: parseFloat(formData.priceRanges.premium),
           custom: formData.priceRanges.custom ? parseFloat(formData.priceRanges.custom) : undefined
-        }
+        },
+        status: formData.status
       })
       if (response.success) {
         toast.success('Product updated successfully')
@@ -154,33 +197,58 @@ const ProductEditPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Name *
+                Product Type *
               </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
+              <select
+                name="productType"
+                value={formData.productType}
                 onChange={handleChange}
-                className={`input ${errors.name ? 'border-red-500' : ''}`}
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
+                className="input"
+              >
+                <option value="individual">Individual Product</option>
+                <option value="combo">Combo Product</option>
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type
+                Name(s) *
               </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="input"
-              >
-                <option value="static">Static</option>
-                <option value="dynamic">Dynamic</option>
-              </select>
+              <div className="space-y-2">
+                {formData.names.map((name, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      name={`names.${index}`}
+                      value={name}
+                      onChange={handleChange}
+                      className={`input flex-1 ${errors.name ? 'border-red-500' : ''}`}
+                      placeholder={formData.productType === 'individual' ? 'Product name' : `Product ${index + 1} name`}
+                    />
+                    {formData.productType === 'combo' && formData.names.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveName(index)}
+                        className="btn btn-danger px-3"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {formData.productType === 'combo' && (
+                  <button
+                    type="button"
+                    onClick={handleAddName}
+                    className="btn btn-secondary text-sm"
+                  >
+                    + Add Product
+                  </button>
+                )}
+              </div>
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
             </div>
 
             <div>
