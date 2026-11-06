@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { customerService } from '../../services/customerService'
 import toast from 'react-hot-toast'
-import { CUSTOMER_TYPE } from '../../config/constants'
+import CustomerTypeField from '../../components/CustomerTypeField'
 
 const CustomerCreatePage = () => {
   const navigate = useNavigate()
@@ -29,7 +29,7 @@ const CustomerCreatePage = () => {
       country: 'India',
       pincode: ''
     },
-    customerType: CUSTOMER_TYPE.BUSINESS,
+    customerType: '',
     notes: ''
   })
   const [errors, setErrors] = useState({})
@@ -185,15 +185,10 @@ const CustomerCreatePage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Customer Type
               </label>
-              <select
-                name="customerType"
+              <CustomerTypeField
                 value={formData.customerType}
-                onChange={handleChange}
-                className="input"
-              >
-                <option value={CUSTOMER_TYPE.BUSINESS}>Business</option>
-                <option value={CUSTOMER_TYPE.INDIVIDUAL}>Individual</option>
-              </select>
+                onChange={(name) => setFormData(prev => ({ ...prev, customerType: name }))}
+              />
             </div>
           </div>
         </div>

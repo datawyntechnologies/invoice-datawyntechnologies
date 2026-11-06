@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { customerService } from '../../services/customerService'
 import toast from 'react-hot-toast'
-import { CUSTOMER_TYPE } from '../../config/constants'
+import CustomerTypeField from '../../components/CustomerTypeField'
 
 const CustomerEditPage = () => {
   const { id } = useParams()
@@ -31,7 +31,7 @@ const CustomerEditPage = () => {
       country: 'India',
       pincode: ''
     },
-    customerType: CUSTOMER_TYPE.BUSINESS,
+    customerType: '',
     notes: ''
   })
   const [errors, setErrors] = useState({})
@@ -69,7 +69,7 @@ const CustomerEditPage = () => {
             country: 'India',
             pincode: ''
           },
-          customerType: customer.customerType || CUSTOMER_TYPE.BUSINESS,
+          customerType: customer.customerType || '',
           notes: customer.notes || ''
         })
       }
@@ -238,15 +238,10 @@ const CustomerEditPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Customer Type
               </label>
-              <select
-                name="customerType"
+              <CustomerTypeField
                 value={formData.customerType}
-                onChange={handleChange}
-                className="input"
-              >
-                <option value={CUSTOMER_TYPE.BUSINESS}>Business</option>
-                <option value={CUSTOMER_TYPE.INDIVIDUAL}>Individual</option>
-              </select>
+                onChange={(name) => setFormData(prev => ({ ...prev, customerType: name }))}
+              />
             </div>
           </div>
         </div>

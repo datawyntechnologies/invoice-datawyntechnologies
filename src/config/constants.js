@@ -43,11 +43,6 @@ export const PROPOSAL_STATUS_COLORS = {
   expired: 'orange'
 }
 
-export const CUSTOMER_TYPE = {
-  INDIVIDUAL: 'individual',
-  BUSINESS: 'business'
-}
-
 export const PRODUCT_TYPE = {
   PRODUCT: 'product',
   SERVICE: 'service'
