@@ -25,4 +25,13 @@ export const productService = {
     const response = await api.delete(`/products/${id}`)
     return response.data
   },
+
+  importProducts: async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await api.post('/products/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  },
 }
