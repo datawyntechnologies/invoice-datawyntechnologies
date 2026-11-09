@@ -1,7 +1,7 @@
 {
   "build": {
     "env": {
-      "VITE_API_URL": "https://invoice-datawyn-backend.vercel.app/api"
+      "VITE_API_URL": "https://invoice-datawyn-backend-two.vercel.app/api"
     }
   },
   "rewrites": [
