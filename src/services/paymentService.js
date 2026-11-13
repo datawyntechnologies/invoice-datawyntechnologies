@@ -25,6 +25,22 @@ export const paymentService = {
     return response.data
   },
 
+  // Add Manual Installment/Payment Entry
+  addManualInstallment: async (data) => {
+    const response = await api.post('/payments/installments', data)
+    return response.data
+  },
+
+  // Import Payment Schedule (xlsx/csv)
+  importPaymentSchedule: async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await api.post('/payments/schedule/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  },
+
   // Get Payment History
   getPaymentHistory: async (customerId) => {
     const response = await api.get(`/payments/history/${customerId}`)

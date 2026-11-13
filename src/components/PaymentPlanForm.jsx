@@ -8,6 +8,7 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
   const [paymentMethod, setPaymentMethod] = useState(existingPlan?.paymentMethod || '')
   const [paymentSchedule, setPaymentSchedule] = useState(existingPlan?.paymentSchedule || [])
   const [emiDetails, setEmiDetails] = useState(existingPlan?.emiDetails || {})
+  const [recurringDetails, setRecurringDetails] = useState(existingPlan?.recurringDetails || {})
   const [balanceDueDate, setBalanceDueDate] = useState(existingPlan?.balanceDueDate || '')
   const [validationError, setValidationError] = useState('')
 
@@ -28,6 +29,7 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
       paymentMethod,
       paymentSchedule,
       emiDetails,
+      recurringDetails,
       balanceDueDate,
     }
 
@@ -40,7 +42,7 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
       console.log('PaymentPlanForm - sending null to parent (no plan type)')
       onChange(null)
     }
-  }, [planType, paymentMethod, paymentSchedule, emiDetails, balanceDueDate, onChange])
+  }, [planType, paymentMethod, paymentSchedule, emiDetails, recurringDetails, balanceDueDate, onChange])
 
   const addPaymentStage = () => {
     setPaymentSchedule([
@@ -103,7 +105,26 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
         return false
       }
     }
-    
+
+    if (planType === 'recurring') {
+      if (!recurringDetails.amount || recurringDetails.amount <= 0) {
+        setValidationError('Recurring payment amount is required')
+        return false
+      }
+      if (!['monthly', 'quarterly', 'yearly'].includes(recurringDetails.frequency)) {
+        setValidationError('Please select a payment frequency')
+        return false
+      }
+      if (!recurringDetails.startDate || !recurringDetails.endDate) {
+        setValidationError('Service start date and due date are required')
+        return false
+      }
+      if (new Date(recurringDetails.startDate) > new Date(recurringDetails.endDate)) {
+        setValidationError('Service start date cannot be after the due date')
+        return false
+      }
+    }
+
     setValidationError('')
     return true
   }
@@ -201,10 +222,38 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
 
         return []
 
+      case 'recurring': {
+        const { amount, frequency, startDate, endDate } = recurringDetails
+        if (!amount || amount <= 0 || !frequency || !startDate || !endDate) return []
+
+        const monthsStep = { monthly: 1, quarterly: 3, yearly: 12 }[frequency]
+        const frequencyLabel = frequency.charAt(0).toUpperCase() + frequency.slice(1)
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        if (isNaN(start) || isNaN(end) || start > end) return []
+
+        const schedule = []
+        const current = new Date(start)
+        let guard = 0
+        while (current <= end && guard < 1000) {
+          schedule.push({
+            paymentName: `${frequencyLabel} Payment`,
+            paymentType: 'recurring',
+            amount,
+            percentage: null,
+            dueDate: new Date(current),
+            status: 'pending'
+          })
+          current.setMonth(current.getMonth() + monthsStep)
+          guard++
+        }
+        return schedule
+      }
+
       default:
         return []
     }
-  }, [planType, paymentMethod, paymentSchedule, emiDetails, balanceDueDate, totalAmount, invoiceDate])
+  }, [planType, paymentMethod, paymentSchedule, emiDetails, recurringDetails, balanceDueDate, totalAmount, invoiceDate])
 
   // Calculate summary
   const summary = useMemo(() => {
@@ -260,6 +309,7 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
               setPaymentMethod('')
               setPaymentSchedule([])
               setEmiDetails({})
+              setRecurringDetails({})
               setBalanceDueDate('')
               setValidationError('')
             }}
@@ -270,6 +320,7 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
             <option value="full_payment">Full Payment</option>
             <option value="advance_50">50% Advance</option>
             <option value="custom_payment">Custom Payment Plan</option>
+            <option value="recurring">Recurring Payment</option>
           </select>
         </div>
 
@@ -305,6 +356,72 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 disabled={disableEdit}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Recurring Payment */}
+        {planType === 'recurring' && (
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <FiInfo />
+              <span>Creates a recurring payment of the entered amount at the selected frequency from the service start date until the due date</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  value={recurringDetails.amount || ''}
+                  onChange={(e) => setRecurringDetails({ ...recurringDetails, amount: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="e.g., 2000"
+                  min="0"
+                  disabled={disableEdit}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Frequency
+                </label>
+                <select
+                  value={recurringDetails.frequency || ''}
+                  onChange={(e) => setRecurringDetails({ ...recurringDetails, frequency: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  disabled={disableEdit}
+                >
+                  <option value="">Select Frequency</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Service Start Date
+                </label>
+                <input
+                  type="date"
+                  value={recurringDetails.startDate || ''}
+                  onChange={(e) => setRecurringDetails({ ...recurringDetails, startDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  disabled={disableEdit}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  value={recurringDetails.endDate || ''}
+                  onChange={(e) => setRecurringDetails({ ...recurringDetails, endDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  disabled={disableEdit}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -622,7 +739,7 @@ const PaymentPlanForm = ({ totalAmount, invoiceDate, onChange, existingPlan, dis
             </div>
 
             {/* Validation Status */}
-            {!summary.isValid && (
+            {!summary.isValid && planType !== 'recurring' && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-4">
                 ⚠️ Total scheduled amount ({formatCurrency(summary.totalScheduled)}) does not match invoice amount ({formatCurrency(summary.invoiceAmount)})
               </div>
