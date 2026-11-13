@@ -5,10 +5,14 @@ import { productService } from '../../services/productService'
 import toast from 'react-hot-toast'
 import { formatCurrency } from '../../utils/formatCurrency'
 import Pagination from '../../components/common/Pagination'
+import { useAuth } from '../../context/AuthContext'
 import * as XLSX from 'xlsx'
 
 const ProductListPage = () => {
   const navigate = useNavigate()
+  const { hasPermission } = useAuth()
+  const canImportData = hasPermission('data.import')
+  const canExportData = hasPermission('data.export')
   const [products, setProducts] = useState([])
   const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -182,20 +186,24 @@ const ProductListPage = () => {
           <p className="text-gray-600">Manage your products and services</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleExport}
-            className="btn btn-secondary flex items-center gap-2"
-          >
-            <FiDownload size={18} />
-            Export
-          </button>
-          <button
-            onClick={handleImportClick}
-            className="btn btn-secondary flex items-center gap-2"
-          >
-            <FiUpload size={18} />
-            Import
-          </button>
+          {canExportData && (
+            <button
+              onClick={handleExport}
+              className="btn btn-secondary flex items-center gap-2"
+            >
+              <FiDownload size={18} />
+              Export
+            </button>
+          )}
+          {canImportData && (
+            <button
+              onClick={handleImportClick}
+              className="btn btn-secondary flex items-center gap-2"
+            >
+              <FiUpload size={18} />
+              Import
+            </button>
+          )}
           <button
             onClick={() => navigate('/products/new')}
             className="btn btn-primary flex items-center gap-2"

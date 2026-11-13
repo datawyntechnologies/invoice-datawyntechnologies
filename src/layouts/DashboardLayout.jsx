@@ -15,6 +15,24 @@ const DashboardLayout = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [sidebarHovered, setSidebarHovered] = useState(false)
+  const [hoverSuppressed, setHoverSuppressed] = useState(false)
+
+  // Sidebar shows full content when pinned open, or when hovered while collapsed
+  // (hover preview is suppressed right after clicking close, until the mouse leaves)
+  const isSidebarExpanded = sidebarOpen || (sidebarHovered && !hoverSuppressed)
+
+  const handleToggleSidebar = () => {
+    if (sidebarOpen) {
+      setHoverSuppressed(true)
+    }
+    toggleSidebar()
+  }
+
+  const handleSidebarMouseLeave = () => {
+    setSidebarHovered(false)
+    setHoverSuppressed(false)
+  }
 
   const handleLogout = () => {
     logout()
@@ -104,36 +122,29 @@ const DashboardLayout = () => {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-full bg-white shadow-lg transition-all duration-300 z-40 overflow-hidden group ${sidebarOpen ? 'w-64' : 'w-20 hover:w-64'
+        onMouseEnter={() => setSidebarHovered(true)}
+        onMouseLeave={handleSidebarMouseLeave}
+        className={`fixed left-0 top-0 h-full bg-white shadow-lg transition-all duration-300 z-40 overflow-hidden flex flex-col ${isSidebarExpanded ? 'w-64' : 'w-20'
           } hidden lg:block`}
       >
-        {/* Sidebar Toggle Button */}
-        <button
-          onClick={toggleSidebar}
-          className="absolute -right-3 top-6 z-50 bg-white border border-gray-200 rounded-full p-1.5 shadow-md hover:bg-gray-50 text-gray-600 transition-colors"
-          title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-        >
-          {sidebarOpen ? <FiChevronsLeft size={16} /> : <FiChevronsRight size={16} />}
-        </button>
-
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-center gap-3">
+        <div className={`flex items-center border-b py-3 ${isSidebarExpanded ? 'px-4' : 'px-2'}`}>
+          <div className="flex-1 flex justify-center">
             <img
               src={companySettings?.logo || defaultLogo}
               alt="Company Logo"
-              className={`object-contain ${sidebarOpen ? 'w-[100px]' : 'w-8 h-8'}`}
+              className={`object-contain ${isSidebarExpanded ? 'w-[100px]' : 'w-8 h-8'}`}
             />
-            {/* <h1
-              className={`font-semibold text-gray-900 ${
-                sidebarOpen ? 'text-lg' : 'text-xs text-center'
-              }`}
-            >
-              {sidebarOpen ? (companySettings?.companyName || 'Datawyn CRM') : 'DT'}
-            </h1> */}
           </div>
+          <button
+            onClick={handleToggleSidebar}
+            className="p-1 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0"
+            title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          >
+            {sidebarOpen ? <FiChevronsLeft size={18} /> : <FiChevronsRight size={18} />}
+          </button>
         </div>
 
-        <nav className="p-4 space-y-2 max-h-[90vh] h-full dw-custom-scrollbar">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto dw-custom-scrollbar pb-20">
           {filteredMenuItems.map((item) => {
             const Icon = item.icon
             return (
@@ -146,7 +157,7 @@ const DashboardLayout = () => {
                   }`}
               >
                 <Icon size={20} />
-                <span className={sidebarOpen ? '' : 'hidden group-hover:inline'}>{item.label}</span>
+                <span className={isSidebarExpanded ? '' : 'hidden'}>{item.label}</span>
               </button>
             )
           })}
@@ -155,10 +166,10 @@ const DashboardLayout = () => {
         <div className="absolute bottom-0 bg-black left-0 right-0 px-4 py-1 border-t">
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center uppercase px-4 py-3 rounded-lg text-white ${sidebarOpen ? 'justify-between' : 'justify-center group-hover:justify-between'}`}
-            title={!sidebarOpen ? 'Logout' : ''}
+            className={`w-full flex items-center uppercase px-4 py-3 rounded-lg text-white ${isSidebarExpanded ? 'justify-between' : 'justify-center'}`}
+            title={!isSidebarExpanded ? 'Logout' : ''}
           >
-            <span className={sidebarOpen ? '' : 'hidden group-hover:inline'}>Logout</span>
+            <span className={isSidebarExpanded ? '' : 'hidden'}>Logout</span>
             <FiLogOut size={20} />
 
           </button>

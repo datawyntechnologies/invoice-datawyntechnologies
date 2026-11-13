@@ -6,8 +6,13 @@ import { formatCurrency } from '../utils/formatCurrency'
 import { formatDate } from '../utils/dateUtils'
 import toast from 'react-hot-toast'
 import PaymentModal from './PaymentModal'
+import { useAuth } from '../context/AuthContext'
 
 const PaymentDashboard = ({ customerId }) => {
+  const { hasPermission } = useAuth()
+  const canViewPaymentHistory = hasPermission('customers.view_payment_history')
+  const canImportData = hasPermission('data.import')
+  const canExportData = hasPermission('data.export')
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState(null)
   const [paymentPlans, setPaymentPlans] = useState([])
@@ -417,22 +422,26 @@ const PaymentDashboard = ({ customerId }) => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="badge">{activeGroup.plan.planType.replace(/_/g, ' ')}</span>
-                <button
-                  onClick={handleExportSchedule}
-                  className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 flex items-center gap-1"
-                  title="Export this payment schedule"
-                >
-                  <FiDownload size={14} />
-                  Export
-                </button>
-                <button
-                  onClick={handleImportClick}
-                  className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 flex items-center gap-1"
-                  title="Import payment schedule rows"
-                >
-                  <FiUpload size={14} />
-                  Import
-                </button>
+                {canExportData && (
+                  <button
+                    onClick={handleExportSchedule}
+                    className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 flex items-center gap-1"
+                    title="Export this payment schedule"
+                  >
+                    <FiDownload size={14} />
+                    Export
+                  </button>
+                )}
+                {canImportData && (
+                  <button
+                    onClick={handleImportClick}
+                    className="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 flex items-center gap-1"
+                    title="Import payment schedule rows"
+                  >
+                    <FiUpload size={14} />
+                    Import
+                  </button>
+                )}
                 <button
                   onClick={openAddPaymentModal}
                   className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 flex items-center gap-1"
@@ -505,6 +514,7 @@ const PaymentDashboard = ({ customerId }) => {
       </div>
 
       {/* Payment History */}
+      {canViewPaymentHistory && (
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900">Payment History</h3>
         <div className="mt-6">
@@ -546,6 +556,7 @@ const PaymentDashboard = ({ customerId }) => {
           )}
         </div>
       </div>
+      )}
 
       {/* Import Payment Schedule Modal */}
       {showImportModal && (

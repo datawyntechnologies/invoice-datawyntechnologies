@@ -6,10 +6,13 @@ import { formatDate } from '../../utils/dateUtils'
 import { formatCurrency } from '../../utils/formatCurrency'
 import toast from 'react-hot-toast'
 import PaymentDashboard from '../../components/PaymentDashboard'
+import { useAuth } from '../../context/AuthContext'
 
 const CustomerDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { hasPermission } = useAuth()
+  const canViewPaymentSchedule = hasPermission('customers.view_payment_schedule')
   const [customer, setCustomer] = useState(null)
   const [invoices, setInvoices] = useState([])
   const [loading, setLoading] = useState(true)
@@ -91,17 +94,19 @@ const CustomerDetailPage = () => {
               <FiUser />
               Customer Details
             </button>
-            <button
-              onClick={() => setActiveTab('payments')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'payments'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <FiCreditCard />
-              Payment Schedule
-            </button>
+            {canViewPaymentSchedule && (
+              <button
+                onClick={() => setActiveTab('payments')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === 'payments'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <FiCreditCard />
+                Payment Schedule
+              </button>
+            )}
             <button
               onClick={() => setActiveTab('invoices')}
               className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
@@ -203,7 +208,7 @@ const CustomerDetailPage = () => {
         )}
 
         {/* Payment Schedule Tab */}
-        {activeTab === 'payments' && (
+        {activeTab === 'payments' && canViewPaymentSchedule && (
           <div className="mt-6">
             <PaymentDashboard customerId={id} />
           </div>

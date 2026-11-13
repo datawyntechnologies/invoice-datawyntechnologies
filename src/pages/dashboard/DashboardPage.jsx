@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { dashboardService } from '../../services/dashboardService'
 import { formatCurrency } from '../../utils/formatCurrency'
 import StatCard from '../../components/dashboard/StatCard'
+import RevenueChart from '../../components/dashboard/RevenueChart'
 import { useAuth } from '../../context/AuthContext'
 
 const DashboardPage = () => {
@@ -15,6 +16,7 @@ const DashboardPage = () => {
   const canViewInvoiceValue = hasPermission('dashboard.view_invoice_value')
   const canViewPaidValue = hasPermission('dashboard.view_paid_value')
   const canViewPendingValue = hasPermission('dashboard.view_pending_value')
+  const canViewRevenueChart = hasPermission('dashboard.view_revenue_chart')
 
   useEffect(() => {
     fetchStats()
@@ -95,6 +97,9 @@ const DashboardPage = () => {
           />
         )}
       </div>
+
+      {/* Revenue Chart */}
+      {canViewRevenueChart && <RevenueChart />}
 
       {/* Quick Actions */}
       <div className="card">
