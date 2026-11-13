@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { FiMenu, FiX, FiHome, FiUsers, FiBox, FiFileText, FiSettings, FiLogOut, FiUserCheck, FiShield, FiBriefcase, FiCreditCard } from 'react-icons/fi'
+import { FiMenu, FiX, FiHome, FiUsers, FiBox, FiFileText, FiSettings, FiLogOut, FiUserCheck, FiShield, FiBriefcase, FiCreditCard, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
 import { useCompany } from '../context/CompanyContext'
@@ -104,9 +104,18 @@ const DashboardLayout = () => {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-full bg-white shadow-lg transition-all duration-300 z-40 ${sidebarOpen ? 'w-64' : 'w-20'
+        className={`fixed left-0 top-0 h-full bg-white shadow-lg transition-all duration-300 z-40 overflow-hidden group ${sidebarOpen ? 'w-64' : 'w-20 hover:w-64'
           } hidden lg:block`}
       >
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={toggleSidebar}
+          className="absolute -right-3 top-6 z-50 bg-white border border-gray-200 rounded-full p-1.5 shadow-md hover:bg-gray-50 text-gray-600 transition-colors"
+          title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        >
+          {sidebarOpen ? <FiChevronsLeft size={16} /> : <FiChevronsRight size={16} />}
+        </button>
+
         <div className="p-4 border-b">
           <div className="flex items-center justify-center gap-3">
             <img
@@ -135,10 +144,9 @@ const DashboardLayout = () => {
                     ? 'bg-primary-50 text-primary-600'
                     : 'text-gray-700 hover:bg-gray-100'
                   }`}
-                title={!sidebarOpen ? item.label : ''}
               >
                 <Icon size={20} />
-                {sidebarOpen && <span>{item.label}</span>}
+                <span className={sidebarOpen ? '' : 'hidden group-hover:inline'}>{item.label}</span>
               </button>
             )
           })}
@@ -147,10 +155,10 @@ const DashboardLayout = () => {
         <div className="absolute bottom-0 bg-black left-0 right-0 px-4 py-1 border-t">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center uppercase justify-between px-4 py-3 rounded-lg text-white"
+            className={`w-full flex items-center uppercase px-4 py-3 rounded-lg text-white ${sidebarOpen ? 'justify-between' : 'justify-center group-hover:justify-between'}`}
             title={!sidebarOpen ? 'Logout' : ''}
           >
-            {sidebarOpen && <span>Logout</span>}
+            <span className={sidebarOpen ? '' : 'hidden group-hover:inline'}>Logout</span>
             <FiLogOut size={20} />
 
           </button>
