@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiPlus, FiTrash2, FiSave, FiX } from 'react-icons/fi'
 import { invoiceService } from '../../services/invoiceService'
@@ -36,6 +36,11 @@ const ProformaCreatePage = () => {
   useEffect(() => {
     console.log('ProformaCreatePage - paymentPlan state changed:', paymentPlan)
   }, [paymentPlan])
+
+  const handlePaymentPlanChange = useCallback((data) => {
+    console.log('ProformaCreatePage - received payment plan data:', data)
+    setPaymentPlan(data)
+  }, [])
 
   useEffect(() => {
     fetchInitialData()
@@ -481,10 +486,7 @@ const ProformaCreatePage = () => {
         <PaymentPlanForm
           totalAmount={calculations.finalAmount}
           invoiceDate={formData.invoiceDate}
-          onChange={(data) => {
-            console.log('ProformaCreatePage - received payment plan data:', data)
-            setPaymentPlan(data)
-          }}
+          onChange={handlePaymentPlanChange}
         />
 
         {/* Actions */}
