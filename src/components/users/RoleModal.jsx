@@ -114,18 +114,6 @@ const RoleModal = ({ isOpen, onClose, onSubmit, role, mode, permissions }) => {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="input"
-                rows={3}
-              />
-            </div>
           </div>
 
           {/* Permissions */}
