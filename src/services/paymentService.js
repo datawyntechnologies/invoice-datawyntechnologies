@@ -47,6 +47,12 @@ export const paymentService = {
     return response.data
   },
 
+  // Delete Payment Transaction
+  deleteTransaction: async (id) => {
+    const response = await api.delete(`/payments/transactions/${id}`)
+    return response.data
+  },
+
   // Get Customer Payment Summary
   getCustomerPaymentSummary: async (customerId) => {
     const response = await api.get(`/payments/summary/${customerId}`)

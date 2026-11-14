@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { FiCheckCircle, FiClock, FiAlertCircle, FiDollarSign, FiCalendar, FiCreditCard, FiArrowUp, FiArrowDown, FiX, FiPlus, FiDownload, FiUpload } from 'react-icons/fi'
+import { FiCheckCircle, FiClock, FiAlertCircle, FiDollarSign, FiCalendar, FiCreditCard, FiArrowUp, FiArrowDown, FiX, FiPlus, FiDownload, FiUpload, FiTrash2 } from 'react-icons/fi'
 import * as XLSX from 'xlsx'
 import { paymentService } from '../services/paymentService'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -13,6 +13,9 @@ const PaymentDashboard = ({ customerId }) => {
   const canViewPaymentHistory = hasPermission('customers.view_payment_history')
   const canImportData = hasPermission('data.import')
   const canExportData = hasPermission('data.export')
+  const canDeletePayments = hasPermission('payment.edit')
+  const [transactionToDelete, setTransactionToDelete] = useState(null)
+  const [deletingTransaction, setDeletingTransaction] = useState(false)
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState(null)
   const [paymentPlans, setPaymentPlans] = useState([])
@@ -206,6 +209,23 @@ const PaymentDashboard = ({ customerId }) => {
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Payment Schedule')
     XLSX.writeFile(workbook, 'payment-schedule-import-template.xlsx')
+  }
+
+  const handleDeleteTransaction = async () => {
+    if (!transactionToDelete) return
+    setDeletingTransaction(true)
+    try {
+      const response = await paymentService.deleteTransaction(transactionToDelete._id)
+      if (response.success) {
+        toast.success('Payment transaction deleted')
+        setTransactionToDelete(null)
+        fetchPaymentData()
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete payment transaction')
+    } finally {
+      setDeletingTransaction(false)
+    }
   }
 
   const handleQuickMarkAsPaid = async (installment) => {
@@ -532,6 +552,9 @@ const PaymentDashboard = ({ customerId }) => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                    {canDeletePayments && (
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -547,6 +570,17 @@ const PaymentDashboard = ({ customerId }) => {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 capitalize">{transaction.paymentMethod.replace('_', ' ')}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{transaction.referenceNumber || transaction.transactionId || '-'}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-center">{getStatusBadge(transaction.status)}</td>
+                        {canDeletePayments && (
+                          <td className="px-4 py-3 whitespace-nowrap text-center">
+                            <button
+                              onClick={() => setTransactionToDelete(transaction)}
+                              className="p-1.5 hover:bg-red-100 rounded-lg text-red-600 transition-colors"
+                              title="Delete transaction"
+                            >
+                              <FiTrash2 size={16} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     )
                   })}
@@ -735,6 +769,42 @@ const PaymentDashboard = ({ customerId }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Transaction Confirmation Modal */}
+      {transactionToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Payment Transaction</h3>
+            <p className="text-gray-600 mb-2">
+              Are you sure you want to delete this payment transaction?
+            </p>
+            <div className="bg-gray-50 rounded-lg p-3 mb-6 text-sm">
+              <p><span className="text-gray-500">Amount:</span> <span className="font-semibold">{formatCurrency(transactionToDelete.amount)}</span></p>
+              <p><span className="text-gray-500">Date:</span> {formatDate(transactionToDelete.transactionDate)}</p>
+              <p><span className="text-gray-500">Method:</span> <span className="capitalize">{(transactionToDelete.paymentMethod || '').replace('_', ' ')}</span></p>
+            </div>
+            <p className="text-xs text-gray-500 mb-6">
+              This will reverse the paid amount on the installment and payment plan.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setTransactionToDelete(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                disabled={deletingTransaction}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteTransaction}
+                disabled={deletingTransaction}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {deletingTransaction ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
