@@ -48,7 +48,7 @@ const SummaryCard = ({ title, value, icon: Icon, accent }) => (
         <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
         <p className="mt-1 text-2xl font-bold text-gray-900">{formatCurrency(value)}</p>
       </div>
-      <div className={`rounded-xl p-2.5 ${accent}`}>
+      <div className={`rounded-xl p-2.5 shadow-sm ${accent}`}>
         <Icon size={20} className="text-white" />
       </div>
     </div>

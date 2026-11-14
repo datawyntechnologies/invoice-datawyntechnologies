@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FiUsers, FiBox, FiFileText, FiTrendingUp, FiPlus, FiCheckCircle, FiClock } from 'react-icons/fi'
+import { FiUsers, FiBox, FiFileText, FiTrendingUp, FiPlus, FiCheckCircle, FiClock, FiUserCheck, FiShield } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { dashboardService } from '../../services/dashboardService'
 import { formatCurrency } from '../../utils/formatCurrency'
@@ -17,6 +17,8 @@ const DashboardPage = () => {
   const canViewPaidValue = hasPermission('dashboard.view_paid_value')
   const canViewPendingValue = hasPermission('dashboard.view_pending_value')
   const canViewRevenueChart = hasPermission('dashboard.view_revenue_chart')
+  const canViewUsers = hasPermission('users.view')
+  const canViewRoles = hasPermission('roles.view')
 
   useEffect(() => {
     fetchStats()
@@ -96,6 +98,22 @@ const DashboardPage = () => {
             color="red"
           />
         )}
+        {canViewUsers && (
+          <StatCard
+            title="Total Users"
+            value={stats?.totalUsers || 0}
+            icon={FiUserCheck}
+            color="teal"
+          />
+        )}
+        {canViewRoles && (
+          <StatCard
+            title="Total Roles"
+            value={stats?.totalRoles || 0}
+            icon={FiShield}
+            color="purple"
+          />
+        )}
       </div>
 
       {/* Revenue Chart */}
@@ -109,7 +127,7 @@ const DashboardPage = () => {
             onClick={() => navigate('/proforma/new')}
             className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <div className="p-2 bg-primary-100 text-primary-600 rounded-lg">
+            <div className="p-2 bg-gray-900 text-white rounded-lg">
               <FiPlus size={20} />
             </div>
             <span className="font-medium">Create Proforma</span>
@@ -118,7 +136,7 @@ const DashboardPage = () => {
             onClick={() => navigate('/customers/new')}
             className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+            <div className="p-2 bg-gray-700 text-white rounded-lg">
               <FiUsers size={20} />
             </div>
             <span className="font-medium">Add Customer</span>
@@ -127,7 +145,7 @@ const DashboardPage = () => {
             onClick={() => navigate('/products/new')}
             className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <div className="p-2 bg-green-100 text-green-600 rounded-lg">
+            <div className="p-2 bg-gray-600 text-white rounded-lg">
               <FiBox size={20} />
             </div>
             <span className="font-medium">Add Product</span>
@@ -136,7 +154,7 @@ const DashboardPage = () => {
             onClick={() => navigate('/invoices')}
             className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
+            <div className="p-2 bg-gray-500 text-white rounded-lg">
               <FiFileText size={20} />
             </div>
             <span className="font-medium">View Invoices</span>

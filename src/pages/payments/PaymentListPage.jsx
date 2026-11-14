@@ -4,6 +4,7 @@ import { paymentService } from '../../services/paymentService'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { formatDate } from '../../utils/dateUtils'
 import toast from 'react-hot-toast'
+import StatCard from '../../components/dashboard/StatCard'
 
 const PaymentListPage = () => {
   const [loading, setLoading] = useState(true)
@@ -135,43 +136,31 @@ const PaymentListPage = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Total Amount</p>
-              <p className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</p>
-            </div>
-            <FiDollarSign size={32} className="text-blue-200" />
-          </div>
-        </div>
-        <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Total Paid</p>
-              <p className="text-2xl font-bold">{formatCurrency(stats.totalPaid)}</p>
-            </div>
-            <FiCheckCircle size={32} className="text-green-200" />
-          </div>
-        </div>
-        <div className="card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-yellow-100 text-sm">Pending</p>
-              <p className="text-2xl font-bold">{formatCurrency(stats.totalPending)}</p>
-            </div>
-            <FiClock size={32} className="text-yellow-200" />
-          </div>
-        </div>
-        <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Active Plans</p>
-              <p className="text-2xl font-bold">{stats.activePlans}</p>
-            </div>
-            <FiCalendar size={32} className="text-purple-200" />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Amount"
+          value={formatCurrency(stats.totalAmount)}
+          icon={FiDollarSign}
+          color="blue"
+        />
+        <StatCard
+          title="Total Paid"
+          value={formatCurrency(stats.totalPaid)}
+          icon={FiCheckCircle}
+          color="green"
+        />
+        <StatCard
+          title="Pending"
+          value={formatCurrency(stats.totalPending)}
+          icon={FiClock}
+          color="orange"
+        />
+        <StatCard
+          title="Active Plans"
+          value={stats.activePlans}
+          icon={FiCalendar}
+          color="purple"
+        />
       </div>
 
       {/* Payment Plans Table */}
