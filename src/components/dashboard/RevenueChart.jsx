@@ -61,12 +61,17 @@ const RevenueChart = () => {
   const [groupBy, setGroupBy] = useState('month')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [appliedDates, setAppliedDates] = useState({ startDate: '', endDate: '' })
   const [loading, setLoading] = useState(true)
 
   const fetchRevenue = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await dashboardService.getRevenueChart({ startDate, endDate, groupBy })
+      const response = await dashboardService.getRevenueChart({
+        startDate: appliedDates.startDate,
+        endDate: appliedDates.endDate,
+        groupBy
+      })
       if (response.success) {
         setData(response.data.data || [])
         setTotals(response.data.totals || null)
@@ -76,12 +81,24 @@ const RevenueChart = () => {
     } finally {
       setLoading(false)
     }
-  }, [startDate, endDate, groupBy])
+  }, [appliedDates, groupBy])
 
   useEffect(() => {
     const timer = setTimeout(fetchRevenue, 300)
     return () => clearTimeout(timer)
   }, [fetchRevenue])
+
+  const handleApply = () => {
+    setAppliedDates({ startDate, endDate })
+  }
+
+  const handleReset = () => {
+    setStartDate('')
+    setEndDate('')
+    setAppliedDates({ startDate: '', endDate: '' })
+  }
+
+  const datesChanged = startDate !== appliedDates.startDate || endDate !== appliedDates.endDate
 
   return (
     <div className="overflow-hidden rounded-xl bg-white shadow-md">
@@ -116,23 +133,39 @@ const RevenueChart = () => {
           </div>
 
           {/* Date range */}
-          <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5">
-            <FiCalendar size={15} className="text-gray-400" />
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-transparent text-sm text-gray-700 outline-none"
-              title="Start date"
-            />
-            <span className="text-xs text-gray-400">→</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-transparent text-sm text-gray-700 outline-none"
-              title="End date"
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5">
+              <FiCalendar size={15} className="text-gray-400" />
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent text-sm text-gray-700 outline-none"
+                title="Start date"
+              />
+              <span className="text-xs text-gray-400">→</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent text-sm text-gray-700 outline-none"
+                title="End date"
+              />
+            </div>
+            <button
+              onClick={handleApply}
+              disabled={!datesChanged}
+              className="rounded-lg bg-gray-900 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Apply
+            </button>
+            <button
+              onClick={handleReset}
+              disabled={!startDate && !endDate && !appliedDates.startDate && !appliedDates.endDate}
+              className="rounded-lg border border-gray-200 bg-white px-3.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Reset
+            </button>
           </div>
         </div>
       </div>
