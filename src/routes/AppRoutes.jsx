@@ -33,6 +33,7 @@ import ProposalListPage from '../pages/proposals/ProposalListPage'
 import ProposalCreatePage from '../pages/proposals/ProposalCreatePage'
 import ProposalDetailPage from '../pages/proposals/ProposalDetailPage'
 import ProposalEditPage from '../pages/proposals/ProposalEditPage'
+import PublicProposalPage from '../pages/public/PublicProposalPage'
 
 // Invoice Pages
 import InvoiceListPage from '../pages/invoices/InvoiceListPage'
@@ -40,6 +41,7 @@ import InvoiceDetailPage from '../pages/invoices/InvoiceDetailPage'
 
 // Settings Pages
 import CompanySettingsPage from '../pages/settings/CompanySettingsPage'
+import ProposalThemeSettingsPage from '../pages/settings/ProposalThemeSettingsPage'
 
 // Payment Pages
 import PaymentListPage from '../pages/payments/PaymentListPage'
@@ -55,6 +57,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<AuthLayout />}>
         <Route index element={<LoginPage />} />
       </Route>
+      <Route path="/proposal/view/:token" element={<PublicProposalPage />} />
       
       {/* Protected Routes */}
       <Route path="/" element={
@@ -183,6 +186,11 @@ const AppRoutes = () => {
             <CompanySettingsPage />
           </PermissionRoute>
         } />
+        <Route path="settings/proposal-themes" element={
+          <PermissionRoute requiredPermission="settings.view">
+            <ProposalThemeSettingsPage />
+          </PermissionRoute>
+        } />
         
         {/* User Management Routes */}
         <Route path="settings/users" element={
@@ -197,7 +205,6 @@ const AppRoutes = () => {
         } />
       </Route>
       
-      {/* Catch all - redirect to login if not authenticated */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )

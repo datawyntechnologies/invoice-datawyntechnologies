@@ -29,6 +29,8 @@ export const PROPOSAL_STATUS_LABELS = {
   draft: 'Draft',
   sent: 'Sent',
   viewed: 'Viewed',
+  under_review: 'Under Review',
+  changes_requested: 'Changes Requested',
   accepted: 'Accepted',
   rejected: 'Rejected',
   expired: 'Expired'
@@ -38,6 +40,8 @@ export const PROPOSAL_STATUS_COLORS = {
   draft: 'gray',
   sent: 'blue',
   viewed: 'purple',
+  under_review: 'yellow',
+  changes_requested: 'orange',
   accepted: 'green',
   rejected: 'red',
   expired: 'orange'

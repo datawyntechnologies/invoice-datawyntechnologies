@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { formatDate } from '../../utils/dateUtils'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLORS } from '../../config/constants'
+import ProposalSendModal from '../../components/proposals/ProposalSendModal'
 
 const ProposalDetailPage = () => {
   const { id } = useParams()
@@ -15,6 +16,8 @@ const ProposalDetailPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState('')
+  const [showSendModal, setShowSendModal] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     fetchProposal()
@@ -61,19 +64,24 @@ const ProposalDetailPage = () => {
   }
 
   const handleDownloadPDF = async () => {
+    setDownloading(true)
     try {
       const response = await proposalService.downloadPDF(id)
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `${proposal.proposalNumber}.pdf`)
+      const client = proposal.customerSnapshot?.companyName?.replace(/[^a-zA-Z0-9]+/g, '_') || 'Client'
+      link.setAttribute('download', `Datawyn_Proposal_${proposal.proposalNumber}_${client}.pdf`)
       document.body.appendChild(link)
       link.click()
       link.remove()
+      window.URL.revokeObjectURL(url)
       toast.success('PDF downloaded successfully')
     } catch (error) {
       console.error('PDF generation error:', error)
       toast.error('Failed to download PDF')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -152,11 +160,19 @@ const ProposalDetailPage = () => {
           Duplicate
         </button>
         <button
+          onClick={() => setShowSendModal(true)}
+          className="btn btn-primary flex items-center gap-2"
+        >
+          <FiSend size={18} />
+          Send Proposal
+        </button>
+        <button
           onClick={handleDownloadPDF}
+          disabled={downloading}
           className="btn btn-secondary flex items-center gap-2"
         >
-          <FiDownload size={18} />
-          Download PDF
+          <FiDownload size={18} className={downloading ? 'animate-pulse' : ''} />
+          {downloading ? 'Generating...' : 'Download PDF'}
         </button>
         <button
           onClick={() => setShowDeleteModal(true)}
@@ -493,12 +509,75 @@ const ProposalDetailPage = () => {
         </div>
       )}
 
+      {/* Payment Schedule */}
+      {proposal.paymentSchedule && proposal.paymentSchedule.length > 0 && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Schedule</h2>
+          <div className="overflow-x-auto">
+            <table className="table">
+              <thead>
+                <tr><th>Stage</th><th>Due Date</th><th>Percentage</th><th>Amount</th></tr>
+              </thead>
+              <tbody>
+                {proposal.paymentSchedule.map((payment, index) => (
+                  <tr key={index}>
+                    <td>{payment.stage || '—'}</td>
+                    <td>{payment.dueDate ? formatDate(payment.dueDate) : '—'}</td>
+                    <td>{payment.percentage || 0}%</td>
+                    <td>{formatCurrency(payment.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Client Decision */}
+      {proposal.clientDecision && (proposal.clientDecision.acceptedAt || proposal.clientDecision.rejectedAt || proposal.clientDecision.changesRequestedAt) && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Client Response</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            {proposal.clientDecision.acceptedAt && <div><span className="text-gray-500">Accepted:</span> {formatDate(proposal.clientDecision.acceptedAt)} by {proposal.clientDecision.acceptedBy || 'Client'}</div>}
+            {proposal.clientDecision.rejectedAt && <div><span className="text-gray-500">Rejected:</span> {formatDate(proposal.clientDecision.rejectedAt)}</div>}
+            {proposal.clientDecision.changesRequestedAt && <div><span className="text-gray-500">Changes requested:</span> {formatDate(proposal.clientDecision.changesRequestedAt)} by {proposal.clientDecision.changesRequestedBy || 'Client'}</div>}
+            {proposal.clientDecision.changeRequest && <div className="md:col-span-3"><span className="text-gray-500">Request:</span> {proposal.clientDecision.changeRequest}</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Activity History */}
+      {proposal.statusHistory && proposal.statusHistory.length > 0 && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Activity History</h2>
+          <div className="space-y-3">
+            {[...proposal.statusHistory].reverse().map((entry, index) => (
+              <div key={index} className="flex items-start gap-3 text-sm">
+                <span className={`badge badge-${PROPOSAL_STATUS_COLORS[entry.status] || 'gray'}`}>{PROPOSAL_STATUS_LABELS[entry.status] || entry.status}</span>
+                <div>
+                  <p className="text-gray-900">{formatDate(entry.changedAt)}</p>
+                  {entry.notes && <p className="text-gray-500">{entry.notes}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Internal Notes */}
       {proposal.internalNotes && (
         <div className="card bg-yellow-50">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Internal Notes</h2>
           <p className="text-gray-600 whitespace-pre-line">{proposal.internalNotes}</p>
         </div>
+      )}
+
+      {showSendModal && (
+        <ProposalSendModal
+          proposal={proposal}
+          onClose={() => setShowSendModal(false)}
+          onSent={fetchProposal}
+        />
       )}
 
       {/* Status Change Modal */}

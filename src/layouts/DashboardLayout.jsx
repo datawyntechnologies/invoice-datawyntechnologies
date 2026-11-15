@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { FiMenu, FiX, FiHome, FiUsers, FiBox, FiFileText, FiSettings, FiLogOut, FiUserCheck, FiShield, FiBriefcase, FiCreditCard, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi'
+import { FiMenu, FiX, FiHome, FiUsers, FiBox, FiFileText, FiSettings, FiLogOut, FiUserCheck, FiShield, FiBriefcase, FiCreditCard, FiChevronsLeft, FiChevronsRight, FiDroplet } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
 import { useCompany } from '../context/CompanyContext'
@@ -50,6 +50,7 @@ const DashboardLayout = () => {
     { path: '/settings/users', icon: FiUserCheck, label: 'Users', permission: 'users.view' },
     { path: '/settings/roles', icon: FiShield, label: 'Roles', permission: 'roles.view' },
     { path: '/settings/company', icon: FiSettings, label: 'Settings', permission: 'settings.view' },
+    { path: '/settings/proposal-themes', icon: FiDroplet, label: 'Proposal Themes', permission: 'settings.view' },
   ]
 
   const filteredMenuItems = menuItems.filter(item => {

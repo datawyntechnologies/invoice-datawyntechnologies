@@ -39,6 +39,7 @@ const ProposalCreatePage = () => {
       milestones: []
     },
     paymentTerms: '50% Advance, 50% on Completion',
+    paymentSchedule: [],
     advanceAmount: 0,
     termsAndConditions: DEFAULT_TERMS.join('\n'),
     notes: '',
@@ -1012,6 +1013,21 @@ const ProposalCreatePage = () => {
                 step="0.01"
                 className="input"
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">Payment Schedule (optional)</label>
+                <button type="button" onClick={() => setFormData(prev => ({ ...prev, paymentSchedule: [...prev.paymentSchedule, { stage: '', percentage: 0, amount: 0, dueDate: '' }] }))} className="text-sm text-primary-600 font-medium">+ Add Stage</button>
+              </div>
+              {formData.paymentSchedule.map((payment, index) => (
+                <div key={index} className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+                  <input value={payment.stage} onChange={e => setFormData(prev => { const schedule = [...prev.paymentSchedule]; schedule[index] = { ...schedule[index], stage: e.target.value }; return { ...prev, paymentSchedule: schedule } })} placeholder="Stage" className="input md:col-span-2" />
+                  <input type="number" value={payment.percentage} onChange={e => setFormData(prev => { const schedule = [...prev.paymentSchedule]; schedule[index] = { ...schedule[index], percentage: Number(e.target.value) || 0 }; return { ...prev, paymentSchedule: schedule } })} placeholder="%" className="input" />
+                  <input type="number" value={payment.amount} onChange={e => setFormData(prev => { const schedule = [...prev.paymentSchedule]; schedule[index] = { ...schedule[index], amount: Number(e.target.value) || 0 }; return { ...prev, paymentSchedule: schedule } })} placeholder="Amount" className="input" />
+                  <input type="date" value={payment.dueDate} onChange={e => setFormData(prev => { const schedule = [...prev.paymentSchedule]; schedule[index] = { ...schedule[index], dueDate: e.target.value }; return { ...prev, paymentSchedule: schedule } })} className="input" />
+                </div>
+              ))}
             </div>
           </div>
         </div>

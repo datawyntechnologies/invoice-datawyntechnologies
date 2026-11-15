@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiPlus, FiSearch, FiEdit, FiTrash2, FiEye, FiCopy, FiDownload } from 'react-icons/fi'
+import { FiPlus, FiSearch, FiEdit, FiTrash2, FiEye, FiCopy, FiDownload, FiSend } from 'react-icons/fi'
+import ProposalSendModal from '../../components/proposals/ProposalSendModal'
 import { proposalService } from '../../services/proposalService'
 import toast from 'react-hot-toast'
 import { formatDate } from '../../utils/dateUtils'
@@ -16,6 +17,8 @@ const ProposalListPage = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(null)
+  const [sendProposal, setSendProposal] = useState(null)
+  const [downloadingId, setDownloadingId] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
@@ -83,20 +86,25 @@ const ProposalListPage = () => {
     }
   }
 
-  const handleDownloadPDF = async (id, proposalNumber) => {
+  const handleDownloadPDF = async (proposal) => {
+    setDownloadingId(proposal._id)
     try {
-      const response = await proposalService.downloadPDF(id)
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const response = await proposalService.downloadPDF(proposal._id)
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `${proposalNumber}.pdf`)
+      const client = proposal.customerSnapshot?.companyName?.replace(/[^a-zA-Z0-9]+/g, '_') || 'Client'
+      link.setAttribute('download', `Datawyn_Proposal_${proposal.proposalNumber}_${client}.pdf`)
       document.body.appendChild(link)
       link.click()
       link.remove()
+      window.URL.revokeObjectURL(url)
       toast.success('PDF downloaded successfully')
     } catch (error) {
       console.error('PDF generation error:', error)
       toast.error('Failed to download PDF')
+    } finally {
+      setDownloadingId(null)
     }
   }
 
@@ -200,11 +208,19 @@ const ProposalListPage = () => {
                         <FiCopy size={18} />
                       </button>
                       <button
-                        onClick={() => handleDownloadPDF(proposal._id, proposal.proposalNumber)}
+                        onClick={() => setSendProposal(proposal)}
                         className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+                        title="Send Proposal"
+                      >
+                        <FiSend size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDownloadPDF(proposal)}
+                        disabled={downloadingId === proposal._id}
+                        className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 disabled:opacity-50"
                         title="Download PDF"
                       >
-                        <FiDownload size={18} />
+                        <FiDownload size={18} className={downloadingId === proposal._id ? 'animate-pulse' : ''} />
                       </button>
                       <button
                         onClick={() => setShowDeleteModal(proposal._id)}
@@ -236,6 +252,14 @@ const ProposalListPage = () => {
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
       />
+
+      {sendProposal && (
+        <ProposalSendModal
+          proposal={sendProposal}
+          onClose={() => setSendProposal(null)}
+          onSent={fetchProposals}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

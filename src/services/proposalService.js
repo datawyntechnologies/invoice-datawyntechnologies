@@ -37,10 +37,31 @@ export const proposalService = {
     return response.data
   },
 
-  downloadPDF: async (id) => {
+  downloadPDF: async (id, themeId) => {
     const response = await api.get(`/proposals/${id}/pdf`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      params: themeId ? { themeId } : {}
     })
     return response
+  },
+
+  generatePDF: async (id, themeId) => {
+    const response = await api.post(`/proposals/${id}/pdf`, { themeId })
+    return response.data
+  },
+
+  sendProposal: async (id, data) => {
+    const response = await api.post(`/proposals/${id}/send`, data)
+    return response.data
+  },
+
+  createShareLink: async (id, expiresInDays = 30) => {
+    const response = await api.post(`/proposals/${id}/share-link`, { expiresInDays })
+    return response.data
+  },
+
+  revokeShareLink: async (id) => {
+    const response = await api.delete(`/proposals/${id}/share-link`)
+    return response.data
   }
 }
