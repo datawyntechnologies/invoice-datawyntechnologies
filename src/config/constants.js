@@ -47,6 +47,33 @@ export const PROPOSAL_STATUS_COLORS = {
   expired: 'orange'
 }
 
+export const QUOTATION_STATUS_LABELS = {
+  draft: 'Draft',
+  sent: 'Sent',
+  viewed: 'Viewed',
+  accepted: 'Accepted',
+  rejected: 'Rejected',
+  expired: 'Expired'
+}
+
+export const QUOTATION_STATUS_COLORS = {
+  draft: 'gray',
+  sent: 'blue',
+  viewed: 'purple',
+  accepted: 'green',
+  rejected: 'red',
+  expired: 'orange'
+}
+
+export const QUOTATION_DEFAULT_TERMS = `1. This quotation is valid until the date mentioned above. Prices are subject to change after the validity period.
+2. The quoted amount includes only the services explicitly listed in the Scope of Work. Any work outside the defined scope will be charged additionally.
+3. Payment shall be made as per the payment schedule mentioned in this quotation.
+4. Project timelines are estimates and may vary based on client feedback, content approval and unforeseen circumstances.
+5. Third-party licenses, domains, hosting, payment gateway charges and other external services are not included unless explicitly mentioned.
+6. Datawyn Technologies shall not be liable for delays caused by factors beyond its reasonable control.
+7. This quotation does not constitute a contract until accepted in writing by both parties.
+8. Any disputes shall be subject to the jurisdiction of the courts at the company's registered location.`
+
 export const PRODUCT_TYPE = {
   PRODUCT: 'product',
   SERVICE: 'service'

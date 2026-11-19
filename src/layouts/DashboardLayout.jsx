@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { FiMenu, FiX, FiHome, FiUsers, FiBox, FiFileText, FiSettings, FiLogOut, FiUserCheck, FiShield, FiBriefcase, FiCreditCard, FiChevronsLeft, FiChevronsRight, FiDroplet } from 'react-icons/fi'
+import { FiMenu, FiX, FiHome, FiUsers, FiBox, FiFileText, FiSettings, FiLogOut, FiUserCheck, FiShield, FiBriefcase, FiCreditCard, FiChevronsLeft, FiChevronsRight, FiDroplet, FiFile } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
 import { useCompany } from '../context/CompanyContext'
@@ -44,6 +44,7 @@ const DashboardLayout = () => {
     { path: '/customers', icon: FiUsers, label: 'Customers', permission: 'customers.view' },
     { path: '/products', icon: FiBox, label: 'Products', permission: 'products.view' },
     { path: '/proposals', icon: FiBriefcase, label: 'Proposals', permission: 'proposals.view' },
+    { path: '/quotations', icon: FiFile, label: 'Quotations', permission: 'quotations.view' },
     { path: '/proforma', icon: FiFileText, label: 'Proforma Invoices', permission: 'proforma.view' },
     { path: '/invoices', icon: FiFileText, label: 'Invoices', permission: 'invoices.view' },
     { path: '/payments', icon: FiCreditCard, label: 'Payments', permission: 'payment.view' },

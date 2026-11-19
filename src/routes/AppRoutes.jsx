@@ -35,6 +35,12 @@ import ProposalDetailPage from '../pages/proposals/ProposalDetailPage'
 import ProposalEditPage from '../pages/proposals/ProposalEditPage'
 import PublicProposalPage from '../pages/public/PublicProposalPage'
 
+// Quotation Pages
+import QuotationListPage from '../pages/quotations/QuotationListPage'
+import QuotationCreatePage from '../pages/quotations/QuotationCreatePage'
+import QuotationDetailPage from '../pages/quotations/QuotationDetailPage'
+import QuotationEditPage from '../pages/quotations/QuotationEditPage'
+
 // Invoice Pages
 import InvoiceListPage from '../pages/invoices/InvoiceListPage'
 import InvoiceDetailPage from '../pages/invoices/InvoiceDetailPage'
@@ -161,6 +167,28 @@ const AppRoutes = () => {
           </PermissionRoute>
         } />
         
+        {/* Quotation Routes */}
+        <Route path="quotations" element={
+          <PermissionRoute requiredPermission="quotations.view">
+            <QuotationListPage />
+          </PermissionRoute>
+        } />
+        <Route path="quotations/new" element={
+          <PermissionRoute requiredPermission="quotations.create">
+            <QuotationCreatePage />
+          </PermissionRoute>
+        } />
+        <Route path="quotations/:id" element={
+          <PermissionRoute requiredPermission="quotations.view">
+            <QuotationDetailPage />
+          </PermissionRoute>
+        } />
+        <Route path="quotations/:id/edit" element={
+          <PermissionRoute requiredPermission="quotations.edit">
+            <QuotationEditPage />
+          </PermissionRoute>
+        } />
+
         {/* Invoice Routes */}
         <Route path="invoices" element={
           <PermissionRoute requiredPermission="invoices.view">

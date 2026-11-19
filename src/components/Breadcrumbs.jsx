@@ -10,6 +10,7 @@ const Breadcrumbs = () => {
     'customers': 'Customers',
     'products': 'Products',
     'proforma': 'Proforma Invoices',
+    'quotations': 'Quotations',
     'invoices': 'Invoices',
     'settings': 'Settings',
     'company': 'Company Settings',
